@@ -22,15 +22,14 @@ let package = Package(
             supportedInterfaceOrientations: [
                 .portrait,
                 .landscapeRight,
-                .landscapeLeft,
-                .portraitUpsideDown(.when(deviceFamilies: [.pad]))
+                .landscapeLeft
             ]
         )
     ],
     targets: [
         .target(
             name: "DoroCarIOS",
-            path: "./", // 直接使用仓库根目录
+            path: "./",
             sources: ["DoroCarApp.swift"],
             resources: [.copy("UI")]
         )
