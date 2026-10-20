@@ -10,14 +10,149 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: 列出项目全部Scheme
+      - name: 生成Xcode项目工程
         run: |
-          ls -la
-          # 自动识别是xcworkspace还是xcodeproj
-          if [ -f *.xcworkspace ];then
-            echo "找到 xcworkspace"
-            xcodebuild -list -workspace *.xcworkspace
-          else
-            echo "找到 xcodeproj"
-            xcodebuild -list -project *.xcodeproj
-          fi
+          mkdir -p DoroCarIOS
+          cd DoroCarIOS
+          cat > DoroCarIOS.xcodeproj/project.pbxproj <<'EOF'
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		13B07FBC1A68108700A75B9A /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FBB1A68108700A75B9A /* App.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		13B07FAD1A68108700A75B9A /* DoroCarIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoroCarIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FBB1A68108700A75B9A /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		13B07FA41A68108700A75B9A = {
+			isa = PBXGroup;
+			children = (
+				13B07FBA1A68108700A75B9A = {
+					isa = PBXGroup;
+					children = (
+						13B07FBB1A68108700A75B9A /* App.swift */,
+					);
+					path = DoroCarIOS;
+					sourceTree = "<group>";
+				};
+				13B07FAD1A68108700A75B9A /* DoroCarIOS.app */,
+			);
+			path = DoroCarIOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		13B07FAE1A68108700A75B9A /* DoroCarIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13B07FB71A68108700A75B9A /* Build configuration list for PBXNativeTarget "DoroCarIOS" */;
+			buildPhases = (
+				13B07FAF1A68108700A75B9A /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DoroCarIOS;
+			productName = DoroCarIOS;
+			productReference = 13B07FAD1A68108700A75B9A /* DoroCarIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXSourcesBuildPhase section */
+		13B07FAF1A68108700A75B9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildFiles = (
+				13B07FBC1A68108700A75B9A /* App.swift in Sources */,
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		13B07FB51A68108700A75B9A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGNING_REQUIRED = NO;
+				DEVELOPMENT_TEAM = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dorocar.hvac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		13B07FB61A68108700A75B9A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGNING_REQUIRED = NO;
+				DEVELOPMENT_TEAM = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dorocar.hvac;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		13B07FB71A68108700A75B9A /* Build configuration list for PBXNativeTarget "DoroCarIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				13B07FB51A68108700A75B9A /* Debug */,
+				13B07FB61A68108700A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 13B07FA41A68108700A75B9A;
+}
+EOF
+          # 复制你的源码进新项目
+          cp ../DoroCarApp.swift DoroCarIOS/App.swift
+          cp -r ../UI DoroCarIOS/
+          cp ../Info.plist DoroCarIOS/Info.plist
+
+      - name: Archive
+        run: |
+          cd DoroCarIOS
+          xcodebuild archive \
+            -project DoroCarIOS.xcodeproj \
+            -scheme DoroCarIOS \
+            -configuration Release \
+            -archivePath DoroCarIOS.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA
+        run: |
+          cd DoroCarIOS
+          xcodebuild -exportArchive \
+            -archivePath DoroCarIOS.xcarchive \
+            -exportPath ./output \
+            -exportOptionsPlist ../exportOptions.plist
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: DoroCarIOS-IPA
+          path: DoroCarIOS/output/*.ipa
