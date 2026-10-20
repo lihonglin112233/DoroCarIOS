@@ -1,4 +1,4 @@
-name: Build iOS IPA SPM
+name: Build iOS
 on:
   push:
     branches: [ main ]
@@ -7,39 +7,14 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 生成SwiftPackage manifest Package.swift
-        run: |
-          cat > Package.swift <<'EOF'
-// swift-tools-version:5.9
-import PackageDescription
+      - name: Swift Build Release
+        run: swift build -c release --arch arm64
 
-let package = Package(
-    name: "DoroCarIOS",
-    platforms: [
-        .iOS(.v16)
-    ],
-    products: [
-        .executable(name: "DoroCarIOS", targets: ["DoroCarIOS"])
-    ],
-    targets: [
-        .executableTarget(
-            name: "DoroCarIOS",
-            sources: ["DoroCarApp.swift"],
-            resources: [.copy("UI")]
-        )
-    ]
-)
-EOF
-
-      - name: Build release
-        run: |
-          swift build --target DoroCarIOS -c release --arch arm64
-
-      - name: Upload build artifact
+      - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
-          name: DoroCar-build
+          name: DoroCarBinary
           path: .build/release/DoroCarIOS
