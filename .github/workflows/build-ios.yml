@@ -7,31 +7,17 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-      - name: Checkout code
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
-      - name: Build archive
+      - name: 列出项目全部Scheme
         run: |
-          xcodebuild archive \
-            -scheme DoroCarApp \
-            -archivePath DoroCarApp.xcarchive \
-            -sdk iphoneos \
-            SKIP_INSTALL=NO
-
-      - name: Export IPA
-        run: |
-          xcodebuild -exportArchive \
-            -archivePath DoroCarApp.xcarchive \
-            -exportPath ./output \
-            -exportOptionsPlist exportOptions.plist
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: DoroCarIPA
-          path: output/*.ipa
+          ls -la
+          # 自动识别是xcworkspace还是xcodeproj
+          if [ -f *.xcworkspace ];then
+            echo "找到 xcworkspace"
+            xcodebuild -list -workspace *.xcworkspace
+          else
+            echo "找到 xcodeproj"
+            xcodebuild -list -project *.xcodeproj
+          fi
