@@ -10,11 +10,10 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: 生成Xcode项目工程
+      - name: Create Xcode project folder
         run: |
-          mkdir -p DoroCarIOS
-          cd DoroCarIOS
-          cat > DoroCarIOS.xcodeproj/project.pbxproj <<'EOF'
+          mkdir -p DoroCarIOS/DoroCarIOS.xcodeproj
+          cat > DoroCarIOS/DoroCarIOS.xcodeproj/project.pbxproj <<'EOF'
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
@@ -126,12 +125,12 @@ jobs:
 	rootObject = 13B07FA41A68108700A75B9A;
 }
 EOF
-          # 复制你的源码进新项目
-          cp ../DoroCarApp.swift DoroCarIOS/App.swift
-          cp -r ../UI DoroCarIOS/
-          cp ../Info.plist DoroCarIOS/Info.plist
+          # 复制源码
+          cp DoroCarApp.swift DoroCarIOS/App.swift
+          cp -r UI DoroCarIOS/
+          cp Info.plist DoroCarIOS/
 
-      - name: Archive
+      - name: Xcode Archive
         run: |
           cd DoroCarIOS
           xcodebuild archive \
@@ -151,8 +150,8 @@ EOF
             -exportPath ./output \
             -exportOptionsPlist ../exportOptions.plist
 
-      - name: Upload IPA
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DoroCarIOS-IPA
+          name: DoroCarIOS-Build
           path: DoroCarIOS/output/*.ipa
